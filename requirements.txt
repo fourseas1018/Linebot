@@ -1,6 +1,6 @@
 line-bot-sdk
 numpy
-yahoo_fin.stock_info
+yahoo_fin
 re
 bs4
 flask
