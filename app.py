@@ -1,13 +1,13 @@
 #載入LineBot所需要的套件
 from flask import Flask, request, abort
-
-from linebot import (
-    LineBotApi, WebhookHandler
-)
-from linebot.exceptions import (
-    InvalidSignatureError
-)
+import pandas as pd
+import yahoo_fin.stock_info as si
+import numpy as np
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import  InvalidSignatureError
 from linebot.models import *
+import datetime
+import re
 
 app = Flask(__name__)
 
@@ -17,6 +17,8 @@ line_bot_api = LineBotApi('52bhA1czfLbYrFnlU38eUlDxGjkLHhOpRmAmJmWCFvok+dO/rn+BO
 handler = WebhookHandler('223cbe254528bf518e42358505c97bdb')
 
 line_bot_api.push_message('U9e6f525ecd8275e7d12127dbad547c79', TextSendMessage(text='你可以開始了'))
+
+
 
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
@@ -36,11 +38,40 @@ def callback():
 
     return 'OK'
 
+
+#--------------儲存使用者的股票--------------
+def write_user_stock_function(stock,bs,price,uspric):
+    df=pd.DataFrame([(stock,bs,price,datetime.datetime.utcnow(),'care_stock')],columns=['stock','bs','price', 'date_info','type'])
+    uspric=uspric.append(df)
+    return uspric
+    
+#--------------刪除使用者的股票--------------
+def delete_user_stock_function(stock,uspric):
+    uspric.drop(index=uspric.index[np.where(uspric['stock']==stock)[0]],inplace=True)
+    return uspric
+def show_user_stock_founction(uspric):
+    cel=list(uspric[np.where(uspric['type']=='care_stock')])
+    return cel
+
+
+uspric = pd.DataFrame(columns=['stock','bs','print', 'date_info','type'])
 #訊息傳遞區塊
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    message = TextSendMessage(text=event.message.text)
-    line_bot_api.reply_message(event.reply_token,message)
+    
+    ##抓到客戶資料##
+    profile=line_bot_api.get_profile(event.source.user_id)
+    uid = profile.user_id
+    usespeak = str(event.message.text)
+    #判斷是否為要儲存的資料
+    if re.match('[0-9]{4}[<>=][0-9]',usespeak):
+        write_user_stock_function(stock=usespeak[0:4],bs=usespeak[4:5],price=usespeak[5:],uspric=uspric)
+        line_bot_api.push_message(uid,TextSendMessage(usespeak[0:4]+'這支股票已經儲存進關注清單'))
+        return 0
+    elif re.match('刪除[0-9]{4}',usespeak):
+        delete_user_stock_function(stock=usespeak[2:],uspric=uspric)
+        line_bot_api.push_message(uid,TextSendMessage(usespeak + '已經刪除成功'))
+        return 0
 
 #主程式
 import os

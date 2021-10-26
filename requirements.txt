@@ -1,4 +1,7 @@
 line-bot-sdk
+numpy
+yahoo_fin.stock_info
+re
 bs4
 flask
 pymongo
