@@ -9,5 +9,4 @@ pandas
 SnowNLP
 emoji
 pyshorteners
-re
 scipy
