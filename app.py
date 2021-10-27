@@ -43,12 +43,12 @@ def callback():
 def write_user_stock_function(stock,bs,price,uspric):
     df=pd.DataFrame([(stock,bs,price,datetime.datetime.utcnow(),'care_stock')],columns=['stock','bs','price', 'date_info','type'])
     uspric=uspric.append(df)
-    return uspric
+    
     
 #--------------刪除使用者的股票--------------
 def delete_user_stock_function(stock,uspric):
     uspric.drop(index=uspric.index[np.where(uspric['stock']==stock)[0]],inplace=True)
-    return uspric
+    
 def show_user_stock_founction(uspric):
     cel=list(uspric[np.where(uspric['type']=='care_stock')])
     return cel
@@ -66,15 +66,16 @@ def handle_message(event):
     #判斷是否為要儲存的資料
     if re.match('[0-9]{4}[<>][0-9]',usespeak):
         write_user_stock_function(stock=usespeak[0:4],bs=usespeak[4:5],price=usespeak[5:],uspric=uspric)
-        line_bot_api.reply_message(uid,TextSendMessage(usespeak[0:4]+'這支股票已經儲存進關注清單'))
+        line_bot_api.push_message(uid,TextSendMessage(usespeak[0:4]+'這支股票已經儲存進關注清單'))
+        print(1)
         return 0
     elif re.match('刪除[0-9]{4}',usespeak):
         delete_user_stock_function(stock=usespeak[2:],uspric=uspric)
-        line_bot_api.reply_message(uid,TextSendMessage(usespeak + '成功'))
+        line_bot_api.push_message(uid,TextSendMessage(usespeak + '成功'))
+        print(0)
         return 0
 
 #主程式
 import os
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
