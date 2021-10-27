@@ -2,7 +2,6 @@
 from flask import Flask, request, abort
 import time
 import pandas as pd
-from pandas._libs.tslibs import Second
 import yahoo_fin.stock_info as si
 import numpy as np
 from linebot import (
@@ -26,7 +25,7 @@ handler = WebhookHandler('223cbe254528bf518e42358505c97bdb')
 
 line_bot_api.push_message('U9e6f525ecd8275e7d12127dbad547c79', TextSendMessage(text='你可以開始了'))
 
-uspric = pd.DataFrame(columns=['stock','bs','price', 'date_info','type'])
+uspric = pd.DataFrame(columns=['stock','bs','print', 'date_info','type'])
 yourid = 'U9e6f525ecd8275e7d12127dbad547c79'
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
@@ -57,7 +56,7 @@ def write_user_stock_function(stock,bs,price,uspric):
 def delete_user_stock_function(stock,uspric):
     uspric.drop(index=uspric.index[np.where(uspric['stock']==stock)[0]],inplace=True)
     return uspric
-#--------------不停比較--------------
+#--------------秀出使用者的股票--------------
 def job():
     fliter=uspric[uspric['type']=='care_stock']
     for index,row in fliter.iterrows():
@@ -78,18 +77,7 @@ def job():
                 get=str(stock)+'的價格抵達'+str(price)+'\n'+str(stock)+'價格為:'+str(nowstock)
                 line_bot_api.push_message(yourid,TextSendMessage(text=get))
 
-def standard_deviation(stocknumber):
-    stocklist = si.get_data(str(stocknumber)+'.TW', start_date = '01/01/2020')
-    stockaverage = pd.to_numeric(stocklist['close']).mean()
-    stockSD  = pd.to_numeric(stocklist['close']).std()
-    buy='很貴不要買\n'
-    if pd.to_numeric(stocklist['close'][-1:].values[0]>stockaverage-(2*stockSD)):
-        buy=str(stocknumber)+'這支股票現在很便宜喔'
-        get = '收盤價 = '+stocklist['close'][-1:].values[0]
-        get=get+'\n均價 = '+str(stockaverage)
-        get=get+'\n線距 = '+str(stockSD)
-        get=get+buy
-    line_bot_api.push_message(yourid,TextSendMessage(text=get))
+
 #訊息傳遞區塊
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
@@ -102,17 +90,15 @@ def handle_message(event):
     if re.match('[0-9]{4}[<>=＜＞＝][0-9]',usespeak):
         write_user_stock_function(stock=usespeak[0:4],bs=usespeak[4:5],price=usespeak[5:],uspric=uspric)
         line_bot_api.push_message(uid,TextSendMessage(usespeak[0:4]+'這支股票已經儲存進關注清單'))
-        Second_5_j=schedule.every(10).seconds.do(job)
-        while True:
-            schedule.run_pending()
-            line_bot_api.push_message(yourid,TextSendMessage(text="我進迴圈了"))
-            time.sleep(1)
         return 0
     elif re.match('刪除[0-9]{4}',usespeak):
         delete_user_stock_function(stock=usespeak[2:],uspric=uspric)
         line_bot_api.push_message(uid,TextSendMessage(usespeak + '成功'))
         return 0
-
+    second_5_j = schedule.every(10).seconds.do(job)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
 #主程式
