@@ -76,10 +76,10 @@ def job():
             if float(nowstock) == price:
                 get=str(stock)+'的價格抵達'+str(price)+'\n'+str(stock)+'價格為:'+str(nowstock)
                 line_bot_api.push_message(yourid,TextSendMessage(text=get))
-    second_5_j = schedule.every(10).seconds.do(job)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+second_5_j = schedule.every(10).seconds.do(job)
+while True:
+    schedule.run_pending()
+    time.sleep(1)
 
 
 
