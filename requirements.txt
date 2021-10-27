@@ -3,7 +3,6 @@ numpy
 yahoo_fin
 bs4
 flask
-time
 pymongo
 datetime
 pandas
