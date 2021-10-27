@@ -66,11 +66,11 @@ def handle_message(event):
     #判斷是否為要儲存的資料
     if re.match('[0-9]{4}[<>][0-9]',usespeak):
         write_user_stock_function(stock=usespeak[0:4],bs=usespeak[4:5],price=usespeak[5:],uspric=uspric)
-        line_bot_api.push_message(uid,TextSendMessage(usespeak[0:4]+'這支股票已經儲存進關注清單'))
+        line_bot_api.reply_message(uid,TextSendMessage(usespeak[0:4]+'這支股票已經儲存進關注清單'))
         return 0
     elif re.match('刪除[0-9]{4}',usespeak):
         delete_user_stock_function(stock=usespeak[2:],uspric=uspric)
-        line_bot_api.push_message(uid,TextSendMessage(usespeak + '成功'))
+        line_bot_api.reply_message(uid,TextSendMessage(usespeak + '成功'))
         return 0
 
 #主程式
