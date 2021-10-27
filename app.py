@@ -76,12 +76,6 @@ def job():
             if float(nowstock) == price:
                 get=str(stock)+'的價格抵達'+str(price)+'\n'+str(stock)+'價格為:'+str(nowstock)
                 line_bot_api.push_message(yourid,TextSendMessage(text=get))
-second_5_j = schedule.every(10).seconds.do(job)
-while True:
-    schedule.run_pending()
-    time.sleep(1)
-
-
 
 
 #訊息傳遞區塊
@@ -101,6 +95,11 @@ def handle_message(event):
         delete_user_stock_function(stock=usespeak[2:],uspric=uspric)
         line_bot_api.push_message(uid,TextSendMessage(usespeak + '成功'))
         return 0
+    second_5_j = schedule.every(10).seconds.do(job)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 
 #主程式
 import os
